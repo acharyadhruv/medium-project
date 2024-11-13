@@ -1,19 +1,31 @@
-import dbConnect from '@/lib/dbconnect';
-import UserModel from '@/model/User';
+import dbConnect from "@/lib/dbconnect";
+import UserModel from "@/model/User";
 import bcrypt from 'bcryptjs';
-import { sendVerificationEmail } from '@/helpers/sendVerificationEmail';
-
+import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
 export async function POST(request: Request) {
   await dbConnect();
 
   try {
     const { username, email, password } = await request.json();
+     console.log (username, email,password);
+
+    if (!username) {
+      return Response.json(
+        {
+          success: false,
+          message: 'Username is required',
+        },
+        { status: 400 }
+      );
+    }
 
     const existingVerifiedUserByUsername = await UserModel.findOne({
       username,
       isVerified: true,
+     
     });
-
+    console.log({existingVerifiedUserByUsername});
+ 
     if (existingVerifiedUserByUsername) {
       return Response.json(
         {
@@ -26,6 +38,7 @@ export async function POST(request: Request) {
 
     const existingUserByEmail = await UserModel.findOne({ email });
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+     console.log({existingUserByEmail})
 
     if (existingUserByEmail) {
       if (existingUserByEmail.isVerified) {
